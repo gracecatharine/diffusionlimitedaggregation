@@ -1,0 +1,52 @@
+#Colorcoding the cluster
+
+cells = np.zeros((61,61))
+cells[31,31] = 1
+cells_time = np.zeros((61,61))
+cells_time[31,31] = 1
+start_time = time.time()
+
+xCenter = 31
+yCenter = 31
+randX = 0
+randY = 0
+
+def elapsed_time():
+  end_time = time.time()
+  elapsed_time = end_time - start_time
+  return elapsed_time
+
+def cellSize():
+  row_sums = np.sum(cells, axis=1)
+  col_sums = np.sum(cells, axis=0)
+  row_max1R = max(row_sums)
+  row_max1C = max(col_sums)
+  cellsize = int(max(row_max1R,row_max1C))
+  return cellsize
+
+def random_walk_with_time():
+  #starts a random walk at a random location on the radius until the walker reaches a position adjacent to cluster
+  Rmax = cellSize()
+  r = Rmax + 2
+  randangle = 2*math.pi*random.random()
+  randX = int(r * math.cos(randangle) + xCenter)
+  randY = int(r * math.sin(randangle) + yCenter)
+  for i in np.arange(0,1000):
+    if (xCenter - 2*r) <= randX <= (2*r + xCenter) and (yCenter-2*r) <= randY <= (2*r+yCenter):
+      if 1 <= randX < 60 and 1<= randY < 60:
+        if cells[randX+1,randY] == 1 or cells[randX-1,randY] == 1 or cells[randX,randY+1] == 1 or cells[randX,randY-1] == 1 or cells[randX+1,randY+1] == 1 or cells[randX-1,randY-1] == 1 or cells[randX-1,randY+1] == 1 or cells[randX+1,randY-1] == 1:
+          cells[randX,randY] = 1
+          cells_time[randX,randY] = 1 + elapsed_time()
+        else:
+          randX = randX + random.choice([0,1,-1])
+          randY = randY + random.choice([0,1,-1])
+      else:
+        randX = randX + random.choice([0,1,-1])
+        randY = randY + random.choice([0,1,-1])
+    else:
+      pass
+
+for i in range(1000):
+  random_walk_with_time()
+plt.imshow(cells_time, cmap='rainbow', interpolation='nearest')
+plt.show()
