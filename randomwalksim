@@ -1,0 +1,53 @@
+import matplotlib.pyplot as plt
+import numpy as np
+import math
+import random
+import matplotlib.animation as animation
+import time
+from collections import Counter
+
+#Create 61x61 matrix of all 0's with center element equal to 1
+cells = np.zeros((61,61))
+cells[31,31] = 1
+
+xCenter = 31
+yCenter = 31
+randX = 0
+randY = 0
+
+def cellSize():
+  #determines the row/column w the greatest number of 1s to update Rmax value
+  row_sums = np.sum(cells, axis=1)
+  col_sums = np.sum(cells, axis=0)
+  row_max1R = max(row_sums)
+  col_max1C = max(col_sums)
+  cellsize = int(max(row_max1R,col_max1C))
+  return cellsize
+
+def random_walk():
+  #starts a random walk at a random location on the radius until the walker reaches a position adjacent to cluster
+  Rmax = cellSize()
+  r = Rmax + 2
+  randangle = 2*math.pi*random.random()
+  randX = int(r * math.cos(randangle) + xCenter)
+  randY = int(r * math.sin(randangle) + yCenter)
+  for i in np.arange(0,1000):
+    if (xCenter - 2*r) <= randX <= (2*r + xCenter) and (yCenter-2*r) <= randY <= (2*r+yCenter):
+      if 1 <= randX < 60 and 1<= randY < 60:
+        if cells[randX+1,randY] == 1 or cells[randX-1,randY] == 1 or cells[randX,randY+1] == 1 or cells[randX,randY-1] == 1 or cells[randX+1,randY+1] == 1 or cells[randX-1,randY-1] == 1 or cells[randX-1,randY+1] == 1 or cells[randX+1,randY-1] == 1:
+          cells[randX,randY] = 1
+        else:
+          randX = randX + random.choice([0,1,-1])
+          randY = randY + random.choice([0,1,-1])
+      else:
+        randX = randX + random.choice([0,1,-1])
+        randY = randY + random.choice([0,1,-1])
+    else:
+      pass
+
+
+for i in range(1000):
+  random_walk()
+
+plt.imshow(cells, cmap='rainbow', interpolation='nearest')
+plt.show()
