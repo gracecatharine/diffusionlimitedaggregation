@@ -1,0 +1,87 @@
+def CenterofMass(matrix):
+  rows, cols = np.where(matrix == 1)
+  COMrow = np.mean(rows) #mean bc mass = numbers of 1s
+  COMcol = np.mean(cols)
+  print(f'Center of Mass: {float(COMrow),float(COMcol)}')
+  return COMrow,COMcol
+CenterofMass(cells)
+
+def LinearSize(matrix):
+  rows, cols = np.where(matrix == 1)
+  rMin = min(rows)
+  rMax = max(rows)
+  cMin = min(cols)
+  cMax = max(cols)
+  length = rMax - rMin
+  height = cMax - cMin
+  LS = (length + height)/2
+  print(f'Linear Size: {float(LS)}')
+  return LS
+LinearSize(cells)
+
+LS = LinearSize(cells)
+EstR = int(LS)/2
+radii = np.arange(EstR-10,EstR)
+
+print(radii)
+
+
+def MassAtR(matrix):
+  rows, cols = matrix.shape
+  comrow, comcol = CenterofMass(matrix)
+  R = int(comrow)
+  C = int(comcol)
+  mass = []
+  for r in radii:
+    r = int(r)
+    r1 = int(R-r)
+    r2 = int(R+r)
+    c1= int(C-r)
+    c2= int(C+r)
+
+    sub = matrix[r1:r2,c1:c2]
+
+    l, w = sub.shape
+
+    x,y = np.ogrid[0:l,0:w]
+
+    mask = (x-r)**2 + (y-r)**2 <= r**2
+    circ = sub[mask]
+    TotalOnes = np.sum(circ)
+    mass.append(TotalOnes)
+    '''for m in mass:
+      print(f'Mass at {r} is {float(m)}')'''
+  return mass
+
+
+MassAtR(cells)
+
+r = radii
+Mass = MassAtR(cells)
+
+plt.loglog(r, Mass, 'o--')
+
+m, b = np.polyfit(np.log(r),np.log(Mass),1) #converts data to a log scale to do the fit
+
+#data is not linear, so need to find the linear fit of the log values, but want to plot actual
+
+x_fit = np.linspace(np.log(min(r)),np.log(max(r)),100)
+y_fit = m*x_fit+b #fits the line w data in log scale
+
+
+plt.loglog(np.exp(x_fit), np.exp(y_fit)) #converts the data back from log scale, then plots the regular scale data on a log scale
+plt.title("Mass vs Radius on a log scale")
+
+plt.xlabel("Radius (on Log Scale)")
+plt.ylabel("Mass (on Log Scale)")
+
+plt.minorticks_off()
+xticks = np.exp(np.linspace(np.log(min(r)),np.log(max(r)),5))
+yticks = np.exp(np.linspace(np.log(min(Mass)),np.log(max(Mass)),6))
+
+
+plt.xticks(xticks)
+plt.yticks(yticks)
+
+
+print(f'Slope = Fractal Dimension = {m}')
