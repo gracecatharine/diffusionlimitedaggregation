@@ -1,0 +1,87 @@
+#-----two step simualtion growth probabilities only counting top/bottom and right/left, no diagonals-----
+
+gridSize = 61
+xCenter = 31
+yCenter = 31
+num_simulations = 20000
+
+#two particles
+x1, y1 = 31, 31
+x2, y2 = 31, 32
+
+RL_sites = [(x1 - 1, y1), (x1 + 1, y1), (x2 - 1, y2), (x2 + 1, y2)] # where p = 5/36, right and left of cluster
+TB_sites = [(x1, y1 - 1), (x2, y2 + 1)] #where p = 2/9, top and bottom of cluster
+all_sites = set(RL_sites + TB_sites) #everything added together
+
+def cellSize2(cells):
+  coords = np.argwhere(cells == 1)
+  dists  = np.sqrt((coords[:,0] - xCenter)**2 + (coords[:,1] - yCenter)**2) #distance of every cell
+  return int(np.ceil(np.max(dists))) #finding largest distance
+
+def is_adjacent(x, y, cells): #see if has neighbors
+  for dx in [-1, 0, 1]:
+      for dy in [-1, 0, 1]: #iterates all possibilities
+          if dx == 0 and dy == 0:
+              continue
+          if cells[x+dx, y+dy] == 1: #neighbor
+              return True
+  return False #if not next to cluster ie if diagonal
+
+def random_walk2(cells):
+  Rmax = cellSize2(cells)
+  r = Rmax + 2 #setting radius
+
+  angle = 2 * math.pi * random.random() #getting starting point
+  x = int(r * math.cos(angle) + xCenter)
+  y = int(r * math.sin(angle) + yCenter)
+
+  for i in range(2000):
+      if x < 1 or x > 59 or y < 1 or y > 59: #does not count if it is not adjacent to cluster
+          return None
+      if is_adjacent(x, y, cells):
+          return (x, y)
+      x += random.choice([-1, 0, 1]) #otherwise it will count it
+      y += random.choice([-1, 0, 1])
+  return None
+
+attached_particles = [] #list to hold all the sites generated
+
+for i in range(num_simulations):
+  #reset to 2 particle cluster for each run
+  cells = np.zeros((gridSize, gridSize))
+  cells[31,31] = 1
+  cells[31,32] = 1
+  loc = random_walk2(cells)
+  attached_particles.append(loc) #add to list
+
+counts = Counter([particle for particle in attached_particles if particle in all_sites])
+total = sum(counts.values())
+
+RL_count = sum(counts[RL] for RL in RL_sites) #counts number of times ended up on side
+TB_count  = sum(counts[TB] for TB in TB_sites) #counts number of times ended up on the ends
+
+particle_RL = (RL_count / total) / 4
+particle_TB  = (TB_count  / total) / 2
+
+
+print("results")
+print()
+
+print("total simulations:")
+print(num_simulations)
+print("simulations where it randomly attached to the possible sites:")
+print(total)
+print()
+
+print("experimental probabilities")
+print("right and left sites:")
+print(particle_RL)
+print("top and bottom sites:")
+print(particle_TB)
+print()
+
+print("theoretical probabilites")
+print("right and left (5/36):")
+print(5/36)
+print("top and bottom (2/9):")
+print(2/9)
